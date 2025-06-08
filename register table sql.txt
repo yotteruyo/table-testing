@@ -1,0 +1,42 @@
+CREATE TABLE `users` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 고유번호',
+  `login_id` VARCHAR(50) NOT NULL COMMENT '로그인 아이디',
+  `password` VARCHAR(255) NOT NULL COMMENT '비밀번호 (해시됨)',
+  `name` VARCHAR(30) NOT NULL COMMENT '이름',
+  `nickname` VARCHAR(50) NULL COMMENT '닉네임',
+  `email` VARCHAR(100) NOT NULL COMMENT '이메일',
+  `phone_number` VARCHAR(20) NULL COMMENT '휴대폰 번호',
+  `status` ENUM('ACTIVE', 'DORMANT', 'BANNED', 'PENDING') NOT NULL DEFAULT 'PENDING' COMMENT '계정 상태',
+  `role` ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER' COMMENT '권한 등급',
+  `marketing_consent` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '마케팅 정보 수신 동의 여부 (0: 비동의, 1: 동의)',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 정보 수정일',
+  `last_login_at` TIMESTAMP NULL COMMENT '마지막 로그인 일시',
+  `deleted_at` TIMESTAMP NULL COMMENT '탈퇴일',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_login_id` (`login_id`),
+  UNIQUE KEY `ux_email` (`email`),
+  UNIQUE KEY `ux_nickname` (`nickname`)
+) COMMENT '회원 정보 테이블';
+
+CREATE TABLE `user_addresses` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL,
+  `alias` VARCHAR(50) NULL COMMENT '주소 별칭 (예: 집, 회사)',
+  `postal_code` VARCHAR(10) NOT NULL,
+  `address_line1` VARCHAR(255) NOT NULL,
+  `address_line2` VARCHAR(255) NULL,
+  `is_default` BOOLEAN NOT NULL DEFAULT FALSE,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) COMMENT '사용자 주소 정보';
+
+CREATE TABLE `login_history` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL,
+  `ip_address` VARCHAR(45) NOT NULL,
+  `login_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  INDEX `idx_user_id` (`user_id`)
+) COMMENT '사용자 로그인 기록';
